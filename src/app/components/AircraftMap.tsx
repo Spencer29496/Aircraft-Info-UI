@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import { useEffect, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 
 interface Aircraft {
   tailNumber: string;
@@ -20,7 +19,7 @@ interface AircraftMapProps {
 }
 
 // Define custom marker icons with different colors for each status
-const createMarkerIcon = (status: Aircraft['status']) => {
+const createMarkerIcon = (L: any, status: Aircraft['status']) => {
   const color = status === 'available' ? '#10b981' : 
                status === 'maintenance' ? '#f59e0b' : '#ef4444';
   
@@ -48,13 +47,37 @@ const createMarkerIcon = (status: Aircraft['status']) => {
   });
 };
 
-export default function AircraftMap({ aircraftData, onAircraftClick }: AircraftMapProps) {
+function AircraftMapComponent({ aircraftData, onAircraftClick }: AircraftMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<L.Map | null>(null);
-  const markersRef = useRef<L.Marker[]>([]);
+  const mapInstanceRef = useRef<any>(null);
+  const markersRef = useRef<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [L, setL] = useState<any>(null);
+
+  // Dynamically import Leaflet on client side only
+  useEffect(() => {
+    const loadLeaflet = async () => {
+      try {
+        const leaflet = await import('leaflet');
+        // Import CSS styles
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/leaflet@1.7.1/dist/leaflet.css';
+        document.head.appendChild(link);
+        
+        setL(leaflet.default);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Failed to load Leaflet:', error);
+        setIsLoading(false);
+      }
+    };
+
+    loadLeaflet();
+  }, []);
 
   useEffect(() => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || !L || isLoading) return;
 
     // Initialize map only once
     if (!mapInstanceRef.current) {
@@ -78,7 +101,7 @@ export default function AircraftMap({ aircraftData, onAircraftClick }: AircraftM
 
       const marker = L.marker(
         [aircraft.location.latitude, aircraft.location.longitude],
-        { icon: createMarkerIcon(aircraft.status) }
+        { icon: createMarkerIcon(L, aircraft.status) }
       );
 
       // Create popup content
@@ -150,7 +173,7 @@ export default function AircraftMap({ aircraftData, onAircraftClick }: AircraftM
       mapInstanceRef.current.fitBounds(group.getBounds().pad(0.1));
     }
 
-  }, [aircraftData, onAircraftClick]);
+  }, [aircraftData, onAircraftClick, L, isLoading]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -165,6 +188,39 @@ export default function AircraftMap({ aircraftData, onAircraftClick }: AircraftM
       }
     };
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-800">Aircraft Map</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Aircraft locations with status-based colors. Click markers for details.
+          </p>
+          <div className="mt-3 flex items-center space-x-4 text-sm">
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+              <span className="text-gray-600">Available</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
+              <span className="text-gray-600">Maintenance</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+              <span className="text-gray-600">AOG</span>
+            </div>
+          </div>
+        </div>
+        <div className="h-96 w-full flex items-center justify-center bg-gray-50" style={{ minHeight: '400px' }}>
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+            <p className="text-gray-600">Loading map...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -195,4 +251,25 @@ export default function AircraftMap({ aircraftData, onAircraftClick }: AircraftM
       />
     </div>
   );
-} 
+}
+
+// Export with dynamic import to prevent SSR
+export default dynamic(() => Promise.resolve(AircraftMapComponent), {
+  ssr: false,
+  loading: () => (
+    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-200">
+        <h2 className="text-xl font-semibold text-gray-800">Aircraft Map</h2>
+        <p className="text-sm text-gray-600 mt-1">
+          Loading map component...
+        </p>
+      </div>
+      <div className="h-96 w-full flex items-center justify-center bg-gray-50" style={{ minHeight: '400px' }}>
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-gray-600">Initializing map...</p>
+        </div>
+      </div>
+    </div>
+  )
+}); 
