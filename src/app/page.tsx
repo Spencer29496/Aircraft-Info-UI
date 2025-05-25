@@ -38,6 +38,8 @@ export default function Home() {
   const [modelFilter, setModelFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [loading, setLoading] = useState(true);
+  const [editingAircraft, setEditingAircraft] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Fetch aircraft data on component mount
   useEffect(() => {
@@ -56,6 +58,37 @@ export default function Home() {
     
     fetchAircraftData();
   }, []);
+
+  // Update aircraft status
+  const updateAircraftStatus = async (tailNumber: string, newStatus: 'available' | 'aog' | 'maintenance') => {
+    setIsUpdating(true);
+    try {
+      const response = await fetch('/api/aircraft', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ tailNumber, status: newStatus }),
+      });
+
+      if (response.ok) {
+        // Update the local state immediately for better UX
+        const updatedAircraftData = aircraftData.map(aircraft =>
+          aircraft.tailNumber === tailNumber 
+            ? { ...aircraft, status: newStatus }
+            : aircraft
+        );
+        setAircraftData(updatedAircraftData);
+        setEditingAircraft(null);
+      } else {
+        console.error('Failed to update aircraft status');
+      }
+    } catch (error) {
+      console.error('Error updating aircraft status:', error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   // Apply filters whenever filter values or aircraft data changes
   useEffect(() => {
@@ -208,6 +241,9 @@ export default function Home() {
             <h2 className="text-xl font-semibold text-gray-800">
               Aircraft Fleet ({filteredData.length} of {aircraftData.length} aircraft)
             </h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Click on any aircraft row to update its status
+            </p>
           </div>
           
           <div className="overflow-x-auto">
@@ -237,7 +273,11 @@ export default function Home() {
                   </tr>
                 ) : (
                   filteredData.map((aircraft) => (
-                    <tr key={aircraft.tailNumber} className="hover:bg-gray-50 transition-colors">
+                    <tr 
+                      key={aircraft.tailNumber} 
+                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => setEditingAircraft(aircraft.tailNumber)}
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
                           {aircraft.tailNumber}
@@ -249,9 +289,34 @@ export default function Home() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={getStatusBadge(aircraft.status)}>
-                          {aircraft.status.toUpperCase()}
-                        </span>
+                        {editingAircraft === aircraft.tailNumber ? (
+                          <div className="flex items-center space-x-2">
+                            <select
+                              value={aircraft.status}
+                              onChange={(e) => updateAircraftStatus(aircraft.tailNumber, e.target.value as 'available' | 'aog' | 'maintenance')}
+                              onClick={(e) => e.stopPropagation()}
+                              disabled={isUpdating}
+                              className="text-xs px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+                            >
+                              <option value="available">Available</option>
+                              <option value="aog">AOG</option>
+                              <option value="maintenance">Maintenance</option>
+                            </select>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingAircraft(null);
+                              }}
+                              className="text-xs px-2 py-1 text-gray-500 hover:text-gray-700"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <span className={getStatusBadge(aircraft.status)}>
+                            {aircraft.status.toUpperCase()}
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatLocation(aircraft.location.latitude, aircraft.location.longitude)}
