@@ -21,12 +21,23 @@ interface LeafletMapProps {
 }
 
 // Fix default marker icons for react-leaflet
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+interface IconDefault extends L.Icon.Default {
+  _getIconUrl?: () => string;
+}
+
+delete (L.Icon.Default.prototype as IconDefault)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
+
+// Extend window interface for aircraft selection
+declare global {
+  interface Window {
+    selectAircraft?: (tailNumber: string) => void;
+  }
+}
 
 // Create custom marker icons for different statuses
 const createMarkerIcon = (status: Aircraft['status']) => {
@@ -103,15 +114,15 @@ function FitBounds({ aircraftData }: { aircraftData: Aircraft[] }) {
 export default function LeafletMap({ aircraftData, onAircraftClick }: LeafletMapProps) {
   // Set up global function for popup button clicks
   useEffect(() => {
-    (window as any).selectAircraft = (tailNumber: string) => {
+    window.selectAircraft = (tailNumber: string) => {
       if (onAircraftClick) {
         onAircraftClick(tailNumber);
       }
     };
 
     return () => {
-      if ((window as any).selectAircraft) {
-        delete (window as any).selectAircraft;
+      if (window.selectAircraft) {
+        delete window.selectAircraft;
       }
     };
   }, [onAircraftClick]);
@@ -273,8 +284,8 @@ export default function LeafletMap({ aircraftData, onAircraftClick }: LeafletMap
                 
                 <button 
                   onClick={() => {
-                    if ((window as any).selectAircraft) {
-                      (window as any).selectAircraft(aircraft.tailNumber);
+                    if (window.selectAircraft) {
+                      window.selectAircraft(aircraft.tailNumber);
                     }
                   }}
                   style={{
