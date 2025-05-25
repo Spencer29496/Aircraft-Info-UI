@@ -1,5 +1,6 @@
-import { promises as fs } from 'fs';
-import path from 'path';
+'use client';
+
+import { useState, useEffect } from 'react';
 
 interface Aircraft {
   tailNumber: string;
@@ -9,12 +10,6 @@ interface Aircraft {
     latitude: number;
     longitude: number;
   };
-}
-
-async function getAircraftData(): Promise<Aircraft[]> {
-  const filePath = path.join(process.cwd(), 'data', 'aircraft.json');
-  const fileContents = await fs.readFile(filePath, 'utf8');
-  return JSON.parse(fileContents);
 }
 
 function getStatusBadge(status: string) {
@@ -36,8 +31,67 @@ function formatLocation(latitude: number, longitude: number) {
   return `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
 }
 
-export default async function Home() {
-  const aircraftData = await getAircraftData();
+export default function Home() {
+  const [aircraftData, setAircraftData] = useState<Aircraft[]>([]);
+  const [filteredData, setFilteredData] = useState<Aircraft[]>([]);
+  const [tailNumberFilter, setTailNumberFilter] = useState('');
+  const [modelFilter, setModelFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  // Fetch aircraft data on component mount
+  useEffect(() => {
+    async function fetchAircraftData() {
+      try {
+        const response = await fetch('/api/aircraft');
+        const data = await response.json();
+        setAircraftData(data);
+        setFilteredData(data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching aircraft data:', error);
+        setLoading(false);
+      }
+    }
+    
+    fetchAircraftData();
+  }, []);
+
+  // Apply filters whenever filter values or aircraft data changes
+  useEffect(() => {
+    let filtered = aircraftData;
+
+    // Filter by tail number (contains)
+    if (tailNumberFilter) {
+      filtered = filtered.filter(aircraft =>
+        aircraft.tailNumber.toLowerCase().includes(tailNumberFilter.toLowerCase())
+      );
+    }
+
+    // Filter by model
+    if (modelFilter) {
+      filtered = filtered.filter(aircraft => aircraft.model === modelFilter);
+    }
+
+    // Filter by status
+    if (statusFilter) {
+      filtered = filtered.filter(aircraft => aircraft.status === statusFilter);
+    }
+
+    setFilteredData(filtered);
+  }, [aircraftData, tailNumberFilter, modelFilter, statusFilter]);
+
+  // Get unique models and statuses for dropdown options
+  const uniqueModels = [...new Set(aircraftData.map(aircraft => aircraft.model))].sort();
+  const uniqueStatuses = [...new Set(aircraftData.map(aircraft => aircraft.status))].sort();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-xl text-gray-600">Loading aircraft data...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -56,28 +110,103 @@ export default async function Home() {
           <div className="bg-green-50 p-6 rounded-lg border border-green-200">
             <h3 className="font-semibold text-green-800 text-sm uppercase tracking-wide">Available</h3>
             <p className="text-3xl font-bold text-green-600 mt-2">
-              {aircraftData.filter(aircraft => aircraft.status === 'available').length}
+              {filteredData.filter(aircraft => aircraft.status === 'available').length}
             </p>
           </div>
           <div className="bg-red-50 p-6 rounded-lg border border-red-200">
             <h3 className="font-semibold text-red-800 text-sm uppercase tracking-wide">AOG</h3>
             <p className="text-3xl font-bold text-red-600 mt-2">
-              {aircraftData.filter(aircraft => aircraft.status === 'aog').length}
+              {filteredData.filter(aircraft => aircraft.status === 'aog').length}
             </p>
           </div>
           <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
             <h3 className="font-semibold text-yellow-800 text-sm uppercase tracking-wide">Maintenance</h3>
             <p className="text-3xl font-bold text-yellow-600 mt-2">
-              {aircraftData.filter(aircraft => aircraft.status === 'maintenance').length}
+              {filteredData.filter(aircraft => aircraft.status === 'maintenance').length}
             </p>
           </div>
+        </div>
+
+        {/* Filters Section */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Filter Aircraft</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Tail Number Filter */}
+            <div>
+              <label htmlFor="tailNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                Tail Number
+              </label>
+              <input
+                type="text"
+                id="tailNumber"
+                placeholder="Search by tail number..."
+                value={tailNumberFilter}
+                onChange={(e) => setTailNumberFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            {/* Model Filter */}
+            <div>
+              <label htmlFor="model" className="block text-sm font-medium text-gray-700 mb-2">
+                Aircraft Model
+              </label>
+              <select
+                id="model"
+                value={modelFilter}
+                onChange={(e) => setModelFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">All Models</option>
+                {uniqueModels.map(model => (
+                  <option key={model} value={model}>{model}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Status Filter */}
+            <div>
+              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
+                Status
+              </label>
+              <select
+                id="status"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">All Statuses</option>
+                {uniqueStatuses.map(status => (
+                  <option key={status} value={status}>
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Clear Filters Button */}
+          {(tailNumberFilter || modelFilter || statusFilter) && (
+            <div className="mt-4">
+              <button
+                onClick={() => {
+                  setTailNumberFilter('');
+                  setModelFilter('');
+                  setStatusFilter('');
+                }}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+              >
+                Clear All Filters
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Aircraft Table */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-800">
-              Aircraft Fleet ({aircraftData.length} aircraft)
+              Aircraft Fleet ({filteredData.length} of {aircraftData.length} aircraft)
             </h2>
           </div>
           
@@ -100,28 +229,36 @@ export default async function Home() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {aircraftData.map((aircraft) => (
-                  <tr key={aircraft.tailNumber} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {aircraft.tailNumber}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {aircraft.model}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={getStatusBadge(aircraft.status)}>
-                        {aircraft.status.toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatLocation(aircraft.location.latitude, aircraft.location.longitude)}
+                {filteredData.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                      No aircraft match the current filters.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredData.map((aircraft) => (
+                    <tr key={aircraft.tailNumber} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">
+                          {aircraft.tailNumber}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {aircraft.model}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={getStatusBadge(aircraft.status)}>
+                          {aircraft.status.toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatLocation(aircraft.location.latitude, aircraft.location.longitude)}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
