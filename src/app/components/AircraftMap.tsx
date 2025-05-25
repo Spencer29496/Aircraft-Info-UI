@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { ComponentType } from 'react';
 
 interface Aircraft {
   tailNumber: string;
@@ -18,8 +19,8 @@ interface AircraftMapProps {
 }
 
 // Create the map component that will be dynamically imported
-const LeafletMapComponent = dynamic(
-  () => import('./LeafletMap').then((mod) => mod.default),
+const LeafletMapComponent: ComponentType<AircraftMapProps> = dynamic(
+  () => import('./LeafletMap'),
   {
     ssr: false,
     loading: () => (

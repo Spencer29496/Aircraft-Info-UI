@@ -42,10 +42,18 @@ export default function Home() {
   const [editingAircraft, setEditingAircraft] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [highlightedAircraft, setHighlightedAircraft] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
+
+  // Ensure we're on the client side
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Fetch aircraft data on component mount
   useEffect(() => {
+    if (!isClient) return; // Only run on client side
+
     async function fetchAircraftData() {
       try {
         // First, try to get data from localStorage
@@ -74,7 +82,7 @@ export default function Home() {
     }
     
     fetchAircraftData();
-  }, []);
+  }, [isClient]);
 
   // Update aircraft status using localStorage
   const updateAircraftStatus = async (tailNumber: string, newStatus: 'available' | 'aog' | 'maintenance') => {
@@ -90,8 +98,10 @@ export default function Home() {
       setAircraftData(updatedAircraftData);
       setEditingAircraft(null);
       
-      // Persist to localStorage
-      localStorage.setItem('aircraftData', JSON.stringify(updatedAircraftData));
+      // Persist to localStorage only on client side
+      if (isClient) {
+        localStorage.setItem('aircraftData', JSON.stringify(updatedAircraftData));
+      }
     } catch (error) {
       console.error('Error updating aircraft status:', error);
     } finally {
@@ -108,8 +118,10 @@ export default function Home() {
       setAircraftData(data);
       setFilteredData(data);
       
-      // Update localStorage with original data
-      localStorage.setItem('aircraftData', JSON.stringify(data));
+      // Update localStorage with original data only on client side
+      if (isClient) {
+        localStorage.setItem('aircraftData', JSON.stringify(data));
+      }
       setLoading(false);
     } catch (error) {
       console.error('Error resetting aircraft data:', error);
@@ -185,8 +197,8 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 py-12">
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-white bg-opacity-20 rounded-full mb-4">
-              <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 110-12 6 6 0 010 12zm-1-5v-2h2v2h-2zm0-4V5h2v2h-2z"/>
+              <svg className="w-10 h-10 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
               </svg>
             </div>
             <h1 className="text-5xl font-bold mb-4 tracking-tight">
