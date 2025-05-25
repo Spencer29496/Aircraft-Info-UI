@@ -3,6 +3,15 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Custom gradient variables for consistency */
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --gradient-warning: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  --gradient-danger: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-medium: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-large: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 @theme inline {
@@ -22,31 +31,212 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  font-feature-settings: 'cv01', 'cv02', 'cv03', 'cv04';
+  font-variant-ligatures: normal;
+  line-height: 1.5;
 }
 
-/* Leaflet map fixes */
+/* Modern scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #94a3b8, #64748b);
+}
+
+/* Custom animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.5s ease-out;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s infinite;
+}
+
+/* Enhanced focus states */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200;
+}
+
+/* Glass morphism effect */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Enhanced button styles */
+.btn-primary {
+  @apply bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-medium px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+}
+
+.btn-secondary {
+  @apply bg-gradient-to-r from-gray-400 to-gray-500 text-white font-medium px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+}
+
+/* Leaflet map fixes and enhancements */
 .leaflet-container {
   width: 100%;
   height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-medium);
 }
 
 .custom-aircraft-marker {
   background: transparent !important;
   border: none !important;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .leaflet-popup-content-wrapper {
-  border-radius: 8px;
+  border-radius: 12px;
+  box-shadow: var(--shadow-large);
+  border: none;
 }
 
 .leaflet-popup-content {
-  margin: 8px 12px;
-  line-height: 1.4;
+  margin: 12px 16px;
+  line-height: 1.5;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.leaflet-popup-tip {
+  background: white;
+  box-shadow: none;
 }
 
 /* Fix for Leaflet marker icons */
 .leaflet-marker-icon {
   margin-left: 0 !important;
   margin-top: 0 !important;
+  transition: transform 0.2s ease;
+}
+
+.leaflet-marker-icon:hover {
+  transform: scale(1.1);
+}
+
+/* Enhanced table styles */
+.table-row-hover {
+  @apply transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50;
+}
+
+/* Custom status indicators */
+.status-available {
+  @apply bg-gradient-to-r from-emerald-400 to-green-500;
+}
+
+.status-maintenance {
+  @apply bg-gradient-to-r from-amber-400 to-yellow-500;
+}
+
+.status-aog {
+  @apply bg-gradient-to-r from-red-400 to-red-600;
+}
+
+/* Loading spinner enhancement */
+.spinner {
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Card hover effects */
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+}
+
+/* Text gradient utilities */
+.text-gradient-primary {
+  @apply bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent;
+}
+
+.text-gradient-success {
+  @apply bg-gradient-to-r from-emerald-500 to-green-600 bg-clip-text text-transparent;
+}
+
+.text-gradient-warning {
+  @apply bg-gradient-to-r from-amber-500 to-yellow-600 bg-clip-text text-transparent;
+}
+
+.text-gradient-danger {
+  @apply bg-gradient-to-r from-red-500 to-red-600 bg-clip-text text-transparent;
+}
+
+/* Form input enhancements */
+.form-input {
+  @apply w-full px-4 py-3 border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 focus:bg-white;
+}
+
+/* Selection styling */
+::selection {
+  background-color: rgba(59, 130, 246, 0.3);
+  color: #1e40af;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
 }

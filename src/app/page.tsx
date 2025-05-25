@@ -14,17 +14,17 @@ interface Aircraft {
 }
 
 function getStatusBadge(status: string) {
-  const baseClasses = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium";
+  const baseClasses = "inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide shadow-sm";
   
   switch (status) {
     case 'available':
-      return `${baseClasses} bg-green-100 text-green-800`;
+      return `${baseClasses} bg-gradient-to-r from-emerald-400 to-green-500 text-white`;
     case 'maintenance':
-      return `${baseClasses} bg-yellow-100 text-yellow-800`;
+      return `${baseClasses} bg-gradient-to-r from-amber-400 to-yellow-500 text-white`;
     case 'aog':
-      return `${baseClasses} bg-red-100 text-red-800`;
+      return `${baseClasses} bg-gradient-to-r from-red-400 to-red-600 text-white`;
     default:
-      return `${baseClasses} bg-gray-100 text-gray-800`;
+      return `${baseClasses} bg-gradient-to-r from-gray-400 to-gray-500 text-white`;
   }
 }
 
@@ -168,40 +168,89 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading aircraft data...</div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
+          <div className="text-xl text-gray-700 font-medium">Loading aircraft data...</div>
+          <div className="text-sm text-gray-500 mt-2">Preparing your aircraft management dashboard</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-6xl mx-auto">
-        <header className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Aircraft Information System
-          </h1>
-        </header>
-        
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      {/* Header with background */}
+      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-xl">
+        <div className="max-w-6xl mx-auto px-4 py-12">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-white bg-opacity-20 rounded-full mb-4">
+              <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 110-12 6 6 0 010 12zm-1-5v-2h2v2h-2zm0-4V5h2v2h-2z"/>
+              </svg>
+            </div>
+            <h1 className="text-5xl font-bold mb-4 tracking-tight">
+              Aircraft Information System
+            </h1>
+            <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+              Monitor, track, and manage your aircraft fleet with real-time updates and intuitive controls
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Summary Cards */}
-        <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-            <h3 className="font-semibold text-green-800 text-sm uppercase tracking-wide">Available</h3>
-            <p className="text-3xl font-bold text-green-600 mt-2">
-              {filteredData.filter(aircraft => aircraft.status === 'available').length}
-            </p>
+        <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="group bg-white p-6 rounded-xl shadow-lg border-0 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-gray-600 text-sm uppercase tracking-wider mb-2">Available Aircraft</h3>
+                <p className="text-4xl font-bold bg-gradient-to-r from-emerald-500 to-green-600 bg-clip-text text-transparent">
+                  {filteredData.filter(aircraft => aircraft.status === 'available').length}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">Ready for service</p>
+              </div>
+              <div className="w-12 h-12 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                </svg>
+              </div>
+            </div>
           </div>
-          <div className="bg-red-50 p-6 rounded-lg border border-red-200">
-            <h3 className="font-semibold text-red-800 text-sm uppercase tracking-wide">AOG</h3>
-            <p className="text-3xl font-bold text-red-600 mt-2">
-              {filteredData.filter(aircraft => aircraft.status === 'aog').length}
-            </p>
+
+          <div className="group bg-white p-6 rounded-xl shadow-lg border-0 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-gray-600 text-sm uppercase tracking-wider mb-2">AOG Status</h3>
+                <p className="text-4xl font-bold bg-gradient-to-r from-red-500 to-red-600 bg-clip-text text-transparent">
+                  {filteredData.filter(aircraft => aircraft.status === 'aog').length}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">Aircraft on ground</p>
+              </div>
+              <div className="w-12 h-12 bg-gradient-to-r from-red-400 to-red-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+                </svg>
+              </div>
+            </div>
           </div>
-          <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
-            <h3 className="font-semibold text-yellow-800 text-sm uppercase tracking-wide">Maintenance</h3>
-            <p className="text-3xl font-bold text-yellow-600 mt-2">
-              {filteredData.filter(aircraft => aircraft.status === 'maintenance').length}
-            </p>
+
+          <div className="group bg-white p-6 rounded-xl shadow-lg border-0 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-gray-600 text-sm uppercase tracking-wider mb-2">In Maintenance</h3>
+                <p className="text-4xl font-bold bg-gradient-to-r from-amber-500 to-yellow-600 bg-clip-text text-transparent">
+                  {filteredData.filter(aircraft => aircraft.status === 'maintenance').length}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">Under service</p>
+              </div>
+              <div className="w-12 h-12 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd"/>
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -214,34 +263,47 @@ export default function Home() {
         </div>
 
         {/* Filters Section */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Filter Aircraft</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-8 border-0">
+          <div className="flex items-center mb-6">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mr-3">
+              <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd"/>
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-800">Filter Aircraft</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Tail Number Filter */}
-            <div>
-              <label htmlFor="tailNumber" className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="space-y-2">
+              <label htmlFor="tailNumber" className="block text-sm font-semibold text-gray-700">
                 Tail Number
               </label>
-              <input
-                type="text"
-                id="tailNumber"
-                placeholder="Search by tail number..."
-                value={tailNumberFilter}
-                onChange={(e) => setTailNumberFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  id="tailNumber"
+                  placeholder="Search by tail number..."
+                  value={tailNumberFilter}
+                  onChange={(e) => setTailNumberFilter(e.target.value)}
+                  className="w-full px-4 py-3 pl-10 border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                />
+                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd"/>
+                </svg>
+              </div>
             </div>
 
             {/* Model Filter */}
-            <div>
-              <label htmlFor="model" className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="space-y-2">
+              <label htmlFor="model" className="block text-sm font-semibold text-gray-700">
                 Aircraft Model
               </label>
               <select
                 id="model"
                 value={modelFilter}
                 onChange={(e) => setModelFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 focus:bg-white"
               >
                 <option value="">All Models</option>
                 {uniqueModels.map(model => (
@@ -251,15 +313,15 @@ export default function Home() {
             </div>
 
             {/* Status Filter */}
-            <div>
-              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="space-y-2">
+              <label htmlFor="status" className="block text-sm font-semibold text-gray-700">
                 Status
               </label>
               <select
                 id="status"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 focus:bg-white"
               >
                 <option value="">All Statuses</option>
                 {uniqueStatuses.map(status => (
@@ -272,7 +334,7 @@ export default function Home() {
           </div>
 
           {/* Clear Filters and Reset Data Buttons */}
-          <div className="mt-4 flex items-center space-x-4">
+          <div className="mt-6 flex items-center space-x-4">
             {(tailNumberFilter || modelFilter || statusFilter) && (
               <button
                 onClick={() => {
@@ -280,7 +342,7 @@ export default function Home() {
                   setModelFilter('');
                   setStatusFilter('');
                 }}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                className="px-6 py-3 bg-gradient-to-r from-gray-400 to-gray-500 text-white font-medium rounded-lg hover:from-gray-500 hover:to-gray-600 transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg"
               >
                 Clear All Filters
               </button>
@@ -288,7 +350,7 @@ export default function Home() {
             <button
               onClick={resetToOriginalData}
               disabled={loading}
-              className="px-4 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-medium rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {loading ? 'Resetting...' : 'Reset to Original Data'}
             </button>
@@ -296,71 +358,88 @@ export default function Home() {
         </div>
 
         {/* Aircraft Table */}
-        <div ref={tableRef} className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-800">
-              Aircraft Fleet ({filteredData.length} of {aircraftData.length} aircraft)
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Click on any aircraft row to update its status. Changes are saved locally and persist across page refreshes.
-            </p>
+        <div ref={tableRef} className="bg-white rounded-xl shadow-lg overflow-hidden border-0">
+          <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-8 py-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+                  <svg className="w-6 h-6 mr-3 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  Aircraft Fleet
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  Showing <span className="font-semibold text-indigo-600">{filteredData.length}</span> of <span className="font-semibold">{aircraftData.length}</span> aircraft
+                </p>
+              </div>
+              <div className="bg-white px-4 py-2 rounded-lg shadow-sm border">
+                <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Quick Actions</p>
+                <p className="text-sm text-gray-700 mt-1">Click any row to update status</p>
+              </div>
+            </div>
           </div>
           
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-8 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                     Tail Number
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-8 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                     Aircraft Model
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-8 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-8 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                     Location
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-gray-100">
                 {filteredData.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
-                      No aircraft match the current filters.
+                    <td colSpan={4} className="px-8 py-12 text-center">
+                      <div className="text-gray-400 mb-2">
+                        <svg className="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
+                        </svg>
+                      </div>
+                      <p className="text-gray-500 text-lg font-medium">No aircraft match the current filters</p>
+                      <p className="text-gray-400 text-sm mt-1">Try adjusting your search criteria</p>
                     </td>
                   </tr>
                 ) : (
-                  filteredData.map((aircraft) => (
+                  filteredData.map((aircraft, index) => (
                     <tr 
                       key={aircraft.tailNumber} 
-                      className={`hover:bg-gray-50 transition-colors cursor-pointer ${
+                      className={`hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 cursor-pointer group ${
                         highlightedAircraft === aircraft.tailNumber 
-                          ? 'bg-blue-50 ring-2 ring-blue-200 ring-inset' 
-                          : ''
+                          ? 'bg-gradient-to-r from-blue-100 to-indigo-100 ring-2 ring-blue-300 ring-inset' 
+                          : index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
                       }`}
                       onClick={() => setEditingAircraft(aircraft.tailNumber)}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
+                      <td className="px-8 py-4 whitespace-nowrap">
+                        <div className="text-sm font-bold text-gray-900 group-hover:text-indigo-600 transition-colors duration-200">
                           {aircraft.tailNumber}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
+                      <td className="px-8 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-700 font-medium">
                           {aircraft.model}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-8 py-4 whitespace-nowrap">
                         {editingAircraft === aircraft.tailNumber ? (
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-3">
                             <select
                               value={aircraft.status}
                               onChange={(e) => updateAircraftStatus(aircraft.tailNumber, e.target.value as 'available' | 'aog' | 'maintenance')}
                               onClick={(e) => e.stopPropagation()}
                               disabled={isUpdating}
-                              className="text-xs px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+                              className="text-sm px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 bg-white shadow-sm"
                             >
                               <option value="available">Available</option>
                               <option value="aog">AOG</option>
@@ -371,7 +450,7 @@ export default function Home() {
                                 e.stopPropagation();
                                 setEditingAircraft(null);
                               }}
-                              className="text-xs px-2 py-1 text-gray-500 hover:text-gray-700"
+                              className="text-sm px-3 py-2 text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
                             >
                               Cancel
                             </button>
@@ -382,7 +461,7 @@ export default function Home() {
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-8 py-4 whitespace-nowrap text-sm text-gray-700 font-mono">
                         {formatLocation(aircraft.location.latitude, aircraft.location.longitude)}
                       </td>
                     </tr>
@@ -390,6 +469,14 @@ export default function Home() {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-12 text-center py-8">
+          <div className="text-gray-500 text-sm">
+            <p className="mb-2">Aircraft Information System • Real-time Fleet Management</p>
+            <p>Powered by modern web technologies for optimal performance</p>
           </div>
         </div>
       </div>

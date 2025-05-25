@@ -2,28 +2,28 @@
   {
     "tailNumber": "N123AB",
     "model": "Boeing 737-800",
-    "status": "maintenance",
+    "status": "available",
     "location": {
-      "latitude": 40.7128,
-      "longitude": -74.006
+      "latitude": 40.6413,
+      "longitude": -73.7781
     }
   },
   {
     "tailNumber": "N456CD",
     "model": "Airbus A320",
-    "status": "aog",
+    "status": "maintenance",
     "location": {
-      "latitude": 34.0522,
-      "longitude": -118.2437
+      "latitude": 33.9425,
+      "longitude": -118.4081
     }
   },
   {
     "tailNumber": "N789EF",
     "model": "Boeing 777-300ER",
-    "status": "aog",
+    "status": "available",
     "location": {
-      "latitude": 41.8781,
-      "longitude": -87.6298
+      "latitude": 41.9742,
+      "longitude": -87.9073
     }
   },
   {
@@ -31,8 +31,8 @@
     "model": "Airbus A350-900",
     "status": "aog",
     "location": {
-      "latitude": 33.9425,
-      "longitude": -118.4081
+      "latitude": 32.8998,
+      "longitude": -97.0403
     }
   },
   {
@@ -40,8 +40,8 @@
     "model": "Boeing 787-9",
     "status": "available",
     "location": {
-      "latitude": 39.2904,
-      "longitude": -76.6122
+      "latitude": 39.1754,
+      "longitude": -76.6683
     }
   },
   {
@@ -49,8 +49,8 @@
     "model": "Airbus A321",
     "status": "maintenance",
     "location": {
-      "latitude": 25.7617,
-      "longitude": -80.1918
+      "latitude": 25.7959,
+      "longitude": -80.2870
     }
   },
   {
@@ -67,8 +67,8 @@
     "model": "Airbus A330-300",
     "status": "aog",
     "location": {
-      "latitude": 32.8998,
-      "longitude": -97.0403
+      "latitude": 39.8561,
+      "longitude": -104.6737
     }
   },
   {
@@ -76,8 +76,8 @@
     "model": "Boeing 737 MAX 8",
     "status": "available",
     "location": {
-      "latitude": 37.7749,
-      "longitude": -122.4194
+      "latitude": 37.6213,
+      "longitude": -122.3790
     }
   },
   {
@@ -85,8 +85,8 @@
     "model": "Embraer E175",
     "status": "maintenance",
     "location": {
-      "latitude": 42.3601,
-      "longitude": -71.0589
+      "latitude": 42.3656,
+      "longitude": -71.0096
     }
   }
-]
+] 

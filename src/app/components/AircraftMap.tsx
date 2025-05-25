@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 
 interface Aircraft {
@@ -18,258 +18,122 @@ interface AircraftMapProps {
   onAircraftClick?: (tailNumber: string) => void;
 }
 
-// Define custom marker icons with different colors for each status
-const createMarkerIcon = (L: any, status: Aircraft['status']) => {
-  const color = status === 'available' ? '#10b981' : 
-               status === 'maintenance' ? '#f59e0b' : '#ef4444';
-  
-  return L.divIcon({
-    html: `
-      <div style="
-        background-color: ${color};
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        border: 2px solid white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 10px;
-        font-weight: bold;
-      ">✈</div>
-    `,
-    className: 'custom-aircraft-marker',
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
-    popupAnchor: [0, -12],
-  });
-};
-
-function AircraftMapComponent({ aircraftData, onAircraftClick }: AircraftMapProps) {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const markersRef = useRef<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [L, setL] = useState<any>(null);
-
-  // Dynamically import Leaflet on client side only
-  useEffect(() => {
-    const loadLeaflet = async () => {
-      try {
-        const leaflet = await import('leaflet');
-        // Import CSS styles
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://unpkg.com/leaflet@1.7.1/dist/leaflet.css';
-        document.head.appendChild(link);
+// Create the map component that will be dynamically imported
+const LeafletMapComponent = dynamic(
+  () => import('./LeafletMap').then((mod) => mod.default),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden border-0">
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-8 py-6 border-b border-gray-200">
+          <div className="flex items-center">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mr-3">
+              <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800">Aircraft Map</h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Interactive fleet visualization with real-time status indicators
+              </p>
+            </div>
+          </div>
+        </div>
         
-        setL(leaflet.default);
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Failed to load Leaflet:', error);
-        setIsLoading(false);
-      }
-    };
-
-    loadLeaflet();
-  }, []);
-
-  useEffect(() => {
-    if (!mapRef.current || !L || isLoading) return;
-
-    // Initialize map only once
-    if (!mapInstanceRef.current) {
-      mapInstanceRef.current = L.map(mapRef.current).setView([39.8283, -98.5795], 4); // Center of US
-
-      // Add tile layer
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-      }).addTo(mapInstanceRef.current);
-    }
-
-    // Clear existing markers
-    markersRef.current.forEach(marker => {
-      mapInstanceRef.current?.removeLayer(marker);
-    });
-    markersRef.current = [];
-
-    // Add markers for each aircraft
-    aircraftData.forEach(aircraft => {
-      if (!mapInstanceRef.current) return;
-
-      const marker = L.marker(
-        [aircraft.location.latitude, aircraft.location.longitude],
-        { icon: createMarkerIcon(L, aircraft.status) }
-      );
-
-      // Create popup content
-      const popupContent = `
-        <div style="font-family: sans-serif; min-width: 200px;">
-          <h3 style="margin: 0 0 8px 0; color: #374151; font-size: 16px; font-weight: 600;">
-            ${aircraft.tailNumber}
-          </h3>
-          <p style="margin: 4px 0; color: #6B7280; font-size: 14px;">
-            <strong>Model:</strong> ${aircraft.model}
-          </p>
-          <p style="margin: 4px 0; color: #6B7280; font-size: 14px;">
-            <strong>Status:</strong> 
-            <span style="
-              display: inline-block; 
-              margin-left: 8px; 
-              padding: 2px 8px; 
-              border-radius: 12px; 
-              font-size: 12px; 
-              font-weight: 500;
-              background-color: ${aircraft.status === 'available' ? '#D1FAE5' : 
-                                 aircraft.status === 'maintenance' ? '#FEF3C7' : '#FEE2E2'};
-              color: ${aircraft.status === 'available' ? '#065F46' : 
-                       aircraft.status === 'maintenance' ? '#92400E' : '#991B1B'};
-            ">
-              ${aircraft.status.toUpperCase()}
-            </span>
-          </p>
-          <p style="margin: 4px 0; color: #6B7280; font-size: 14px;">
-            <strong>Location:</strong> ${aircraft.location.latitude.toFixed(4)}, ${aircraft.location.longitude.toFixed(4)}
-          </p>
-          <button 
-            onclick="window.selectAircraft && window.selectAircraft('${aircraft.tailNumber}')"
-            style="
-              margin-top: 8px;
-              padding: 6px 12px;
-              background-color: #3B82F6;
-              color: white;
-              border: none;
-              border-radius: 4px;
-              font-size: 12px;
-              font-weight: 500;
-              cursor: pointer;
-              width: 100%;
-            "
-            onmouseover="this.style.backgroundColor='#2563EB'"
-            onmouseout="this.style.backgroundColor='#3B82F6'"
-          >
-            View in Aircraft List
-          </button>
-        </div>
-      `;
-
-      marker.bindPopup(popupContent);
-      marker.addTo(mapInstanceRef.current);
-      markersRef.current.push(marker);
-    });
-
-    // Set up global function for popup button clicks
-    (window as any).selectAircraft = (tailNumber: string) => {
-      if (onAircraftClick) {
-        onAircraftClick(tailNumber);
-      }
-    };
-
-    // Auto-fit bounds if there are aircraft
-    if (aircraftData.length > 0 && mapInstanceRef.current) {
-      const group = new L.FeatureGroup(markersRef.current);
-      mapInstanceRef.current.fitBounds(group.getBounds().pad(0.1));
-    }
-
-  }, [aircraftData, onAircraftClick, L, isLoading]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-      // Clean up global function
-      if ((window as any).selectAircraft) {
-        delete (window as any).selectAircraft;
-      }
-    };
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">Aircraft Map</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Aircraft locations with status-based colors. Click markers for details.
-          </p>
-          <div className="mt-3 flex items-center space-x-4 text-sm">
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-              <span className="text-gray-600">Available</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
-              <span className="text-gray-600">Maintenance</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-              <span className="text-gray-600">AOG</span>
-            </div>
-          </div>
-        </div>
-        <div className="h-96 w-full flex items-center justify-center bg-gray-50" style={{ minHeight: '400px' }}>
+        <div className="h-96 flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
-            <p className="text-gray-600">Loading map...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
+            <div className="text-gray-600 font-medium">Loading interactive map...</div>
+            <div className="text-sm text-gray-500 mt-1">Preparing aircraft locations</div>
+          </div>
+        </div>
+        
+        <div className="px-8 py-4 bg-gray-50 border-t border-gray-200">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full mr-2"></div>
+                <span className="text-gray-600 font-medium">Available</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full mr-2"></div>
+                <span className="text-gray-600 font-medium">Maintenance</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-gradient-to-r from-red-400 to-red-600 rounded-full mr-2"></div>
+                <span className="text-gray-600 font-medium">AOG</span>
+              </div>
+            </div>
+            <div className="text-gray-500">
+              Click markers for aircraft details
+            </div>
           </div>
         </div>
       </div>
-    );
+    )
   }
+);
 
+export default function AircraftMap({ aircraftData, onAircraftClick }: AircraftMapProps) {
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-800">Aircraft Map</h2>
-        <p className="text-sm text-gray-600 mt-1">
-          Aircraft locations with status-based colors. Click markers for details.
-        </p>
-        <div className="mt-3 flex items-center space-x-4 text-sm">
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-            <span className="text-gray-600">Available</span>
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden border-0">
+      <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-8 py-6 border-b border-gray-200">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mr-3">
+              <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800">Aircraft Map</h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Interactive fleet visualization • <span className="font-semibold text-indigo-600">{aircraftData.length}</span> aircraft displayed
+              </p>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
-            <span className="text-gray-600">Maintenance</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-            <span className="text-gray-600">AOG</span>
+          
+          <div className="flex items-center space-x-3">
+            <div className="bg-white px-4 py-2 rounded-lg shadow-sm border">
+              <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Map Controls</p>
+              <p className="text-sm text-gray-700 mt-1">Zoom & pan to explore</p>
+            </div>
           </div>
         </div>
       </div>
-      <div 
-        ref={mapRef} 
-        className="h-96 w-full"
-        style={{ minHeight: '400px' }}
-      />
+      
+      <div className="h-96">
+        <LeafletMapComponent aircraftData={aircraftData} onAircraftClick={onAircraftClick} />
+      </div>
+      
+      <div className="px-8 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200">
+        <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center">
+              <div className="w-4 h-4 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full mr-2 shadow-sm"></div>
+              <span className="text-gray-700 font-semibold">Available</span>
+              <span className="ml-2 text-gray-500">({aircraftData.filter(a => a.status === 'available').length})</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-4 h-4 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full mr-2 shadow-sm"></div>
+              <span className="text-gray-700 font-semibold">Maintenance</span>
+              <span className="ml-2 text-gray-500">({aircraftData.filter(a => a.status === 'maintenance').length})</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-4 h-4 bg-gradient-to-r from-red-400 to-red-600 rounded-full mr-2 shadow-sm"></div>
+              <span className="text-gray-700 font-semibold">AOG</span>
+              <span className="ml-2 text-gray-500">({aircraftData.filter(a => a.status === 'aog').length})</span>
+            </div>
+          </div>
+          <div className="text-gray-500 flex items-center">
+            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+            </svg>
+            Click markers for details
+          </div>
+        </div>
+      </div>
     </div>
   );
-}
-
-// Export with dynamic import to prevent SSR
-export default dynamic(() => Promise.resolve(AircraftMapComponent), {
-  ssr: false,
-  loading: () => (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-800">Aircraft Map</h2>
-        <p className="text-sm text-gray-600 mt-1">
-          Loading map component...
-        </p>
-      </div>
-      <div className="h-96 w-full flex items-center justify-center bg-gray-50" style={{ minHeight: '400px' }}>
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
-          <p className="text-gray-600">Initializing map...</p>
-        </div>
-      </div>
-    </div>
-  )
-}); 
+} 
