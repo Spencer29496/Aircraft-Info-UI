@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import AircraftMap from './components/AircraftMap';
 
 interface Aircraft {
   tailNumber: string;
@@ -40,6 +41,8 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [editingAircraft, setEditingAircraft] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [highlightedAircraft, setHighlightedAircraft] = useState<string | null>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
 
   // Fetch aircraft data on component mount
   useEffect(() => {
@@ -142,6 +145,27 @@ export default function Home() {
   const uniqueModels = [...new Set(aircraftData.map(aircraft => aircraft.model))].sort();
   const uniqueStatuses = [...new Set(aircraftData.map(aircraft => aircraft.status))].sort();
 
+  // Handle aircraft selection from map
+  const handleAircraftClick = (tailNumber: string) => {
+    // Clear filters to make sure the aircraft is visible
+    setTailNumberFilter('');
+    setModelFilter('');
+    setStatusFilter('');
+    
+    // Highlight the aircraft
+    setHighlightedAircraft(tailNumber);
+    
+    // Scroll to the aircraft table
+    if (tableRef.current) {
+      tableRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    
+    // Remove highlight after 3 seconds
+    setTimeout(() => {
+      setHighlightedAircraft(null);
+    }, 3000);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -179,6 +203,14 @@ export default function Home() {
               {filteredData.filter(aircraft => aircraft.status === 'maintenance').length}
             </p>
           </div>
+        </div>
+
+        {/* Aircraft Map */}
+        <div className="mb-8">
+          <AircraftMap 
+            aircraftData={filteredData} 
+            onAircraftClick={handleAircraftClick}
+          />
         </div>
 
         {/* Filters Section */}
@@ -264,7 +296,7 @@ export default function Home() {
         </div>
 
         {/* Aircraft Table */}
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div ref={tableRef} className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-800">
               Aircraft Fleet ({filteredData.length} of {aircraftData.length} aircraft)
@@ -303,7 +335,11 @@ export default function Home() {
                   filteredData.map((aircraft) => (
                     <tr 
                       key={aircraft.tailNumber} 
-                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      className={`hover:bg-gray-50 transition-colors cursor-pointer ${
+                        highlightedAircraft === aircraft.tailNumber 
+                          ? 'bg-blue-50 ring-2 ring-blue-200 ring-inset' 
+                          : ''
+                      }`}
                       onClick={() => setEditingAircraft(aircraft.tailNumber)}
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
