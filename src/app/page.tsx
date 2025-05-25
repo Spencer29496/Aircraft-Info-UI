@@ -45,10 +45,24 @@ export default function Home() {
   useEffect(() => {
     async function fetchAircraftData() {
       try {
+        // First, try to get data from localStorage
+        const storedData = localStorage.getItem('aircraftData');
+        if (storedData) {
+          const parsedData = JSON.parse(storedData);
+          setAircraftData(parsedData);
+          setFilteredData(parsedData);
+          setLoading(false);
+          return;
+        }
+
+        // If no stored data, fetch from API and store in localStorage
         const response = await fetch('/api/aircraft');
         const data = await response.json();
         setAircraftData(data);
         setFilteredData(data);
+        
+        // Store in localStorage for future use
+        localStorage.setItem('aircraftData', JSON.stringify(data));
         setLoading(false);
       } catch (error) {
         console.error('Error fetching aircraft data:', error);
@@ -59,34 +73,44 @@ export default function Home() {
     fetchAircraftData();
   }, []);
 
-  // Update aircraft status
+  // Update aircraft status using localStorage
   const updateAircraftStatus = async (tailNumber: string, newStatus: 'available' | 'aog' | 'maintenance') => {
     setIsUpdating(true);
     try {
-      const response = await fetch('/api/aircraft', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ tailNumber, status: newStatus }),
-      });
-
-      if (response.ok) {
-        // Update the local state immediately for better UX
-        const updatedAircraftData = aircraftData.map(aircraft =>
-          aircraft.tailNumber === tailNumber 
-            ? { ...aircraft, status: newStatus }
-            : aircraft
-        );
-        setAircraftData(updatedAircraftData);
-        setEditingAircraft(null);
-      } else {
-        console.error('Failed to update aircraft status');
-      }
+      // Update the local state immediately for better UX
+      const updatedAircraftData = aircraftData.map(aircraft =>
+        aircraft.tailNumber === tailNumber 
+          ? { ...aircraft, status: newStatus }
+          : aircraft
+      );
+      
+      setAircraftData(updatedAircraftData);
+      setEditingAircraft(null);
+      
+      // Persist to localStorage
+      localStorage.setItem('aircraftData', JSON.stringify(updatedAircraftData));
     } catch (error) {
       console.error('Error updating aircraft status:', error);
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  // Reset to original data from API
+  const resetToOriginalData = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/aircraft');
+      const data = await response.json();
+      setAircraftData(data);
+      setFilteredData(data);
+      
+      // Update localStorage with original data
+      localStorage.setItem('aircraftData', JSON.stringify(data));
+      setLoading(false);
+    } catch (error) {
+      console.error('Error resetting aircraft data:', error);
+      setLoading(false);
     }
   };
 
@@ -133,9 +157,6 @@ export default function Home() {
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
             Aircraft Information System
           </h1>
-          <p className="text-gray-600">
-            "How many of my aircraft are ready to fly right now, and which ones are they?"
-          </p>
         </header>
         
         {/* Summary Cards */}
@@ -218,9 +239,9 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Clear Filters Button */}
-          {(tailNumberFilter || modelFilter || statusFilter) && (
-            <div className="mt-4">
+          {/* Clear Filters and Reset Data Buttons */}
+          <div className="mt-4 flex items-center space-x-4">
+            {(tailNumberFilter || modelFilter || statusFilter) && (
               <button
                 onClick={() => {
                   setTailNumberFilter('');
@@ -231,8 +252,15 @@ export default function Home() {
               >
                 Clear All Filters
               </button>
-            </div>
-          )}
+            )}
+            <button
+              onClick={resetToOriginalData}
+              disabled={loading}
+              className="px-4 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Resetting...' : 'Reset to Original Data'}
+            </button>
+          </div>
         </div>
 
         {/* Aircraft Table */}
@@ -242,7 +270,7 @@ export default function Home() {
               Aircraft Fleet ({filteredData.length} of {aircraftData.length} aircraft)
             </h2>
             <p className="text-sm text-gray-600 mt-1">
-              Click on any aircraft row to update its status
+              Click on any aircraft row to update its status. Changes are saved locally and persist across page refreshes.
             </p>
           </div>
           
