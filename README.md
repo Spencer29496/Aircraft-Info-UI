@@ -138,7 +138,3 @@ To learn more about the technologies used:
 - [Tailwind CSS](https://tailwindcss.com/docs) - utility-first CSS framework
 - [React Leaflet](https://react-leaflet.js.org/) - React components for Leaflet maps
 - [TypeScript](https://www.typescriptlang.org/docs/) - typed JavaScript
-
-## License
-
-This project is open source and available under the MIT License.
